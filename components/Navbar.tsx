@@ -17,13 +17,13 @@ const Navbar: React.FC = () => {
             <Link to="/" className="flex-shrink-0 flex items-center gap-3 group">
               <motion.div 
                 whileHover={{ scale: 1.05 }}
-                className="w-10 h-10 bg-blue-700 rounded-md flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-900/40"
+                className="w-10 h-10 bg-blue-700 rounded-md flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-900/40 text-white"
               >
                 BJTU
               </motion.div>
               <div className="flex flex-col">
-                <span className="font-bold text-base tracking-tight leading-tight group-hover:text-blue-400 transition-colors">物理科学与工程学院</span>
-                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-medium">先进物理与量子材料研究中心</span>
+                <span className="font-bold text-lg tracking-tight leading-tight text-white group-hover:text-blue-400 transition-colors">北京交通大学</span>
+                <span className="text-xs text-slate-400 uppercase tracking-widest font-medium">物理科学与工程学院</span>
               </div>
             </Link>
           </div>

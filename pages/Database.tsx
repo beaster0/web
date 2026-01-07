@@ -1,83 +1,521 @@
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const Database: React.FC = () => {
-  const mockData = [
-    { id: 'ENTRY-001', name: '[条目/材料/数据集名称]', method: '[所选技术/算法]', properties: '[核心属性 A]', status: '已验证' },
-    { id: 'ENTRY-002', name: '[条目/材料/数据集名称]', method: '[所选技术/算法]', properties: '[核心属性 B]', status: '待审核' },
-    { id: 'ENTRY-003', name: '[条目/材料/数据集名称]', method: '[所选技术/算法]', properties: '[核心属性 C]', status: '已验证' },
-    { id: 'ENTRY-004', name: '[条目/材料/数据集名称]', method: '[所选技术/算法]', properties: '[核心属性 D]', status: '已验证' },
-    { id: 'ENTRY-005', name: '[条目/材料/数据集名称]', method: '[所选技术/算法]', properties: '[核心属性 E]', status: '已验证' },
-  ];
+// 声明全局 window 对象上的 SmilesDrawer
+declare global {
+  interface Window {
+    SmilesDrawer: any;
+  }
+}
+
+// 定义化学数据接口
+interface ChemicalEntry {
+  cas: string;
+  nameEn: string;
+  nameCn: string;
+  formula: string;
+  mw: string; // Molecular Weight
+  category: '杂环化合物' | '医药中间体' | '核苷类' | '化学试剂';
+  smiles: string; // SMILES string for structure drawing
+}
+
+// 分子结构绘制组件
+const MoleculeViewer: React.FC<{ smiles: string; cas: string }> = ({ smiles, cas }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // 初始化绘图
+  useEffect(() => {
+    if (window.SmilesDrawer && canvasRef.current && wrapperRef.current && smiles) {
+       const wrapper = wrapperRef.current;
+       const canvas = canvasRef.current;
+       
+       // 获取容器尺寸
+       const width = wrapper.clientWidth || 400;
+       const height = wrapper.clientHeight || 300;
+       
+       // 处理高清屏 (Retina Display)
+       const pixelRatio = window.devicePixelRatio || 2; // 强制至少 2x 使得线条更锐利
+       canvas.width = width * pixelRatio;
+       canvas.height = height * pixelRatio;
+       canvas.style.width = `${width}px`;
+       canvas.style.height = `${height}px`;
+
+       // 学术风格配置 (ChemDraw / ACS Style)
+       const options = {
+         width: width * pixelRatio,
+         height: height * pixelRatio,
+         scale: 0, // 自动缩放以适应画布
+         bondThickness: 1.2 * pixelRatio,      // 适中的线条粗细
+         bondLength: 20 * pixelRatio,          // 较短的键长使分子更紧凑精致
+         shortBondLength: 0.85,
+         bondSpacing: 0.18 * 20 * pixelRatio,  // 双键间距
+         atomVisualization: 'default',
+         isomeric: true,
+         debug: false,
+         terminalCarbons: false,               // 关闭末端碳显示 (骨架式结构更专业)
+         explicitHydrogens: true,              // 显示杂原子上的氢
+         overlapSensitivity: 0.42,
+         overlapResolutionIterations: 5,       // 增加迭代减少重叠
+         fontSizeLarge: 8 * pixelRatio,        // 字体大小
+         fontSizeSmall: 5 * pixelRatio,
+         padding: 25 * pixelRatio,
+         colorBond: '#334155',                 // Slate-700 (深灰而非纯黑，更柔和)
+         colorAtom: '#334155',                 
+         backgroundColor: '#ffffff',           // 纯白背景
+         fontFamily: 'Times New Roman, serif', // 使用衬线体，更有学术刊物质感
+         themes: {
+            light: {
+                C: '#334155', 
+                O: '#dc2626', // Red-600 (Classic CPK Red)
+                N: '#1d4ed8', // Blue-700 (Classic CPK Blue)
+                F: '#15803d', // Green-700
+                Cl: '#15803d',
+                Br: '#b45309', // Amber-700
+                I: '#7e22ce', // Purple-700
+                S: '#d97706', // Yellow/Orange
+                P: '#ea580c'  
+            }
+         }
+       };
+       
+       try {
+         const drawer = new window.SmilesDrawer.Drawer(options);
+         window.SmilesDrawer.parse(smiles, (tree: any) => {
+           // 绘制白色背景
+           const ctx = canvas.getContext('2d');
+           if (ctx) {
+             ctx.fillStyle = '#FFFFFF';
+             ctx.fillRect(0, 0, canvas.width, canvas.height);
+           }
+           drawer.draw(tree, canvas, 'light', false);
+         }, (err: any) => {
+           console.error('SmilesDrawer Parse Error:', err);
+         });
+       } catch (e) {
+         console.error('SmilesDrawer Init Error:', e);
+       }
+    }
+  }, [smiles]);
+
+  // 下载功能
+  const downloadImage = () => {
+    if (canvasRef.current) {
+        const link = document.createElement('a');
+        link.download = `${cas}_Structure.png`;
+        link.href = canvasRef.current.toDataURL('image/png', 1.0);
+        link.click();
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="relative group w-full h-full flex items-center justify-center bg-white">
+        <div ref={wrapperRef} className="w-full h-full flex items-center justify-center">
+            <canvas ref={canvasRef} className="block max-w-full max-h-full" />
+        </div>
+        
+        {/* 悬浮下载按钮 - 样式优化 */}
+        <button 
+            onClick={downloadImage}
+            className="absolute bottom-4 right-4 flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm hover:text-blue-600 hover:border-blue-200 hover:shadow-md transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-200"
+        >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export PNG
+        </button>
+    </div>
+  );
+};
+
+const Database: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMol, setSelectedMol] = useState<ChemicalEntry | null>(null);
+  
+  // 数据来源
+  const mockData: ChemicalEntry[] = [
+    { 
+      cas: '82212-14-4', 
+      nameEn: '4-Amino-2-chloro-5-(1H-tetrazol-5-yl)benzenesulfonamide', 
+      nameCn: '5-(2-氨基-4-氯-5-苯磺酰胺)-1H-四唑', 
+      formula: 'C7H7ClN6O2S', 
+      mw: '274.69', 
+      category: '杂环化合物',
+      smiles: 'NS(=O)(=O)c1cc(c(Cl)cc1N)c2[nH]nnn2'
+    },
+    { 
+      cas: '58068-80-7', 
+      nameEn: 'N-octanoyl benzotriazole', 
+      nameCn: 'n-辛酰苯并三唑', 
+      formula: 'C14H19N3O', 
+      mw: '245.32', 
+      category: '化学试剂',
+      smiles: 'CCCCCCCC(=O)n1nnc2ccccc12'
+    },
+    { 
+      cas: '175202-26-3', 
+      nameEn: '3-Chloro-4-(isopropylsulfonyl)thiophene-2-carboxylic acid', 
+      nameCn: '3-氯-4-(异丙基磺酰基)噻吩-2-羧酸', 
+      formula: 'C8H9ClO4S2', 
+      mw: '268.74', 
+      category: '医药中间体',
+      smiles: 'CC(C)S(=O)(=O)c1c(Cl)c(s1)C(=O)O'
+    },
+    { 
+      cas: '92878-95-0', 
+      nameEn: '2-(3-Chloropropoxy)-1-methoxy-4-nitrobenzene', 
+      nameCn: '2-(3-氯丙氧基)-1-甲氧基-4-硝基苯', 
+      formula: 'C10H12ClNO4', 
+      mw: '245.66', 
+      category: '医药中间体',
+      smiles: 'COc1cc([N+](=O)[O-])ccc1OCCCCl'
+    },
+    { 
+      cas: '16490-02-1', 
+      nameEn: '4,6-Pyrimidinedicarboxylic acid', 
+      nameCn: '嘧啶-4,6-二羧酸', 
+      formula: 'C6H4N2O4', 
+      mw: '168.11', 
+      category: '杂环化合物',
+      smiles: 'OC(=O)c1cc(ncn1)C(=O)O'
+    },
+    { 
+      cas: '69099-99-6', 
+      nameEn: '6-Amino-5-nitro-2(1H)-pyrimidinone', 
+      nameCn: '6-氨基-5-硝基-2(1H)-嘧啶', 
+      formula: 'C4H4N4O3', 
+      mw: '156.10', 
+      category: '杂环化合物',
+      smiles: 'Nc1nc(=O)[nH]cc1[N+](=O)[O-]'
+    },
+    { 
+      cas: '109715-12-0', 
+      nameEn: '5-(p-Toluenesulfonate)-2,3-O-isopropylidene-2-C-methyl-D-ribonolactone', 
+      nameCn: '5-(对甲苯磺酰基)-2,3-O-异丙亚基-2-C-甲基-D-核糖酸内酯', 
+      formula: 'C15H18O7S', 
+      mw: '342.36', 
+      category: '核苷类',
+      smiles: 'Cc1ccc(S(=O)(=O)OC[C@@]2(C)OC(=O)[C@@H]3OC(C)(C)O[C@H]23)cc1'
+    },
+    { 
+      cas: '704911-47-7', 
+      nameEn: 'Methyl 5-bromo-1H-1,2,4-triazole-3-carboxylate', 
+      nameCn: '5-溴-1,2,4-三唑-3-甲酸甲酯', 
+      formula: 'C4H4BrN3O2', 
+      mw: '205.99', 
+      category: '杂环化合物',
+      smiles: 'COC(=O)c1nc(Br)[nH]n1'
+    },
+    { 
+      cas: '77077-83-9', 
+      nameEn: '4-Methyl-2H-isoquinolin-1-one', 
+      nameCn: '4-甲基-1(2H)-异喹啉酮', 
+      formula: 'C10H9NO', 
+      mw: '159.19', 
+      category: '杂环化合物',
+      smiles: 'Cc1c[nH]c(=O)c2ccccc12'
+    },
+    { 
+      cas: '62484-16-6', 
+      nameEn: '6-Methyl-2,4(1H,3H)-quinazolinedione', 
+      nameCn: '6-甲基喹唑啉-2,4-二酮', 
+      formula: 'C9H8N2O2', 
+      mw: '176.17', 
+      category: '杂环化合物',
+      smiles: 'Cc1ccc2[nH]c(=O)[nH]c(=O)c2c1'
+    },
+    { 
+      cas: '848691-22-5', 
+      nameEn: '5-Amino[1,3]thiazolo[4,5-d]pyrimidin-2(3H)-one', 
+      nameCn: '5-氨基噻唑并[4,5-d]嘧啶-2(3H)-酮', 
+      formula: 'C5H4N4OS', 
+      mw: '168.18', 
+      category: '杂环化合物',
+      smiles: 'Nc1nc2sc(=O)[nH]c2cn1'
+    },
+    { 
+      cas: '13480-95-0', 
+      nameEn: '2-Ethylthio-5-methyl-3H-pyrimidin-4-one', 
+      nameCn: '2-乙基硫代-5-甲基-3H-嘧啶-4-酮', 
+      formula: 'C7H10N2OS', 
+      mw: '170.23', 
+      category: '医药中间体',
+      smiles: 'CCSc1nc(O)cc(C)n1'
+    },
+    { 
+      cas: '25957-58-8', 
+      nameEn: '4-Ethoxy-2-hydroxypyrimidine', 
+      nameCn: '2-乙氧基嘧啶-4-醇', 
+      formula: 'C6H8N2O2', 
+      mw: '140.14', 
+      category: '杂环化合物',
+      smiles: 'CCOc1ccnc(O)n1'
+    },
+    { 
+      cas: '908128-94-9', 
+      nameEn: '5-O-Methanesulfonate-2,3-O-isopropylidene-2-C-methyl-D-ribonolactone', 
+      nameCn: '5-O-甲基磺酰基-2,3-O-异丙亚基-2-C-甲基-D-核糖酸内酯', 
+      formula: 'C10H16O7S', 
+      mw: '280.30', 
+      category: '核苷类',
+      smiles: 'CS(=O)(=O)OC[C@@]1(C)OC(=O)[C@@H]2OC(C)(C)O[C@H]12'
+    },
+    { 
+      cas: '50440-88-5', 
+      nameEn: '4-Aminoquinazolin-2-ol', 
+      nameCn: '4-氨基-2-羟基喹唑啉', 
+      formula: 'C8H7N3O', 
+      mw: '161.16', 
+      category: '杂环化合物',
+      smiles: 'Nc1nc(O)c2ccccc2n1'
+    },
+    { 
+      cas: '82439-87-0', 
+      nameEn: '3-(4-Nitrobenzyl)-5-hydroxy-3H-imidazole-4-carboxamide', 
+      nameCn: '1-(4-硝基苄基)-4-羟基-1H-咪唑-5-羧酰胺', 
+      formula: 'C11H10N4O4', 
+      mw: '262.22', 
+      category: '医药中间体',
+      smiles: 'NC(=O)c1c(O)n(Cc2ccc([N+](=O)[O-])cc2)cn1'
+    },
+    { 
+      cas: '19693-54-0', 
+      nameEn: '6-Methyl-1,6-naphthyridin-5(6H)-one', 
+      nameCn: '6-甲基-1,6-萘啶-5(6h)-酮', 
+      formula: 'C9H8N2O', 
+      mw: '160.17', 
+      category: '杂环化合物',
+      smiles: 'Cn1ccc2cccnc2c1=O'
+    },
+    { 
+      cas: '103626-36-4', 
+      nameEn: 'N-Cyclopentyl-9H-purin-6-amine', 
+      nameCn: '9H-嘌呤-6-胺, n-环戊基-', 
+      formula: 'C10H13N5', 
+      mw: '203.24', 
+      category: '杂环化合物',
+      smiles: 'NC1=NC=NC2=C1N=CN2C3CCCC3'
+    }
+  ];
+
+  const filteredData = mockData.filter(item => 
+    item.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    item.nameCn.includes(searchTerm) ||
+    item.cas.includes(searchTerm)
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 pb-24 relative">
+      
+      {/* 2D Structure Modal */}
+      <AnimatePresence>
+        {selectedMol && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedMol(null)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            
+            {/* Modal Card */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl relative z-10 overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+            >
+              {/* Close Button Mobile */}
+              <button 
+                onClick={() => setSelectedMol(null)}
+                className="absolute top-4 right-4 z-50 p-2 md:hidden bg-white/80 rounded-full"
+              >
+                 <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                 </svg>
+              </button>
+
+              {/* Left Side: Visual Structure */}
+              <div className="w-full md:w-3/5 bg-slate-50/50 flex flex-col p-8 border-r border-slate-100 relative">
+                <div className="flex justify-between items-start mb-6">
+                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-500 shadow-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                      2D STRUCTURE
+                   </div>
+                </div>
+                
+                {/* Canvas Container */}
+                <div className="flex-grow flex items-center justify-center min-h-[300px] bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6 overflow-hidden">
+                   <MoleculeViewer smiles={selectedMol.smiles} cas={selectedMol.cas} />
+                </div>
+                
+                <div className="mt-4 text-center">
+                   <p className="font-mono text-[10px] text-slate-400 break-all select-all hover:text-slate-600 transition-colors">
+                     SMILES: {selectedMol.smiles}
+                   </p>
+                </div>
+              </div>
+
+              {/* Right Side: Data Info */}
+              <div className="w-full md:w-2/5 p-10 flex flex-col bg-white overflow-y-auto custom-scrollbar">
+                <div className="hidden md:flex justify-end mb-8">
+                    <button 
+                        onClick={() => setSelectedMol(null)}
+                        className="text-slate-400 hover:text-slate-800 transition-colors"
+                    >
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div className="mb-10">
+                    <div className="inline-block px-2.5 py-1 bg-blue-50 text-blue-700 text-[11px] font-bold uppercase tracking-wider rounded mb-4">
+                        {selectedMol.category}
+                    </div>
+                    <h2 className="text-4xl font-extrabold text-slate-900 leading-tight mb-3 font-mono tracking-tight">{selectedMol.cas}</h2>
+                    <h3 className="text-base font-bold text-slate-700 leading-snug mb-2">{selectedMol.nameEn}</h3>
+                    <p className="text-sm text-slate-400">{selectedMol.nameCn}</p>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="p-5 bg-slate-50 rounded-xl border border-slate-100 flex flex-col gap-4">
+                        <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                            <span className="text-xs font-bold text-slate-400 uppercase">Formula</span>
+                            <span className="font-mono text-sm font-bold text-slate-800">{selectedMol.formula}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-400 uppercase">Mol. Weight</span>
+                            <span className="font-mono text-sm font-bold text-slate-800">{selectedMol.mw} g/mol</span>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-3">Inventory Status</h4>
+                        <div className="flex items-center gap-3 text-sm text-slate-600">
+                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                             <span>In Stock (Lab 302, Cabinet B)</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-slate-600">
+                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                             </svg>
+                             <span>Purity: ≥98% (HPLC)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-auto pt-10">
+                    <button className="w-full bg-slate-900 text-white py-4 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 group">
+                        <span>Request Sample</span>
+                        <svg className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="bg-slate-900 text-white py-20 px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
-            <h1 className="text-4xl font-extrabold mb-4">[实验室名称] 核心资源/数据库</h1>
-            <p className="text-slate-400 max-w-xl">
-              [此处填写该数据库的简要介绍，例如：收录了实验室历年来在 XXXX 方向积累的 XXXX 条数据。]
+            <h1 className="text-4xl font-extrabold mb-4">Chemical Registry & CAS Index</h1>
+            <p className="text-slate-400 max-w-xl text-sm leading-relaxed">
+              Materials Genome Engineering Database (MGED) 收录了本实验室常用的有机合成中间体、杂环化合物及精细化学品数据。
             </p>
           </div>
           <div className="flex gap-4">
-             <div className="relative">
+             <div className="relative group">
                 <input 
                   type="text" 
-                  placeholder="搜索条目..." 
-                  className="bg-slate-800 border-none rounded-lg py-3 px-10 text-sm focus:ring-2 focus:ring-blue-500 w-64"
+                  placeholder="Search by CAS or Name..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 rounded-lg py-3 px-10 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-72 transition-all group-hover:bg-slate-800/80"
                 />
                 <svg className="absolute left-3 top-3.5 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
              </div>
-             <button className="bg-blue-600 px-6 py-3 rounded-lg font-bold text-sm hover:bg-blue-700 transition-colors">导出 CSV</button>
+             <button className="bg-blue-600 px-6 py-3 rounded-lg font-bold text-sm hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/50">
+               Export Data
+             </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-           <table className="w-full text-left">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                 <tr>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">唯一 ID</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">名称/标识</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">处理方法/来源</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">关键参数/性能</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">状态标签</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">操作</th>
-                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                 {mockData.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
-                       <td className="px-6 py-4 font-mono text-xs text-blue-600">{item.id}</td>
-                       <td className="px-6 py-4 text-sm font-bold text-slate-900">{item.name}</td>
-                       <td className="px-6 py-4 text-sm text-slate-600">{item.method}</td>
-                       <td className="px-6 py-4 text-sm text-slate-600">{item.properties}</td>
-                       <td className="px-6 py-4">
-                          <span className={`px-2 py-1 rounded text-[10px] font-bold ${
-                            item.status === '已验证' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                          }`}>
-                            {item.status}
-                          </span>
-                       </td>
-                       <td className="px-6 py-4 text-right">
-                          <button className="text-slate-400 hover:text-blue-600 transition-colors group-hover:scale-110" title="查看详情">
-                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                             </svg>
-                          </button>
-                       </td>
-                    </tr>
-                 ))}
-              </tbody>
-           </table>
-           <div className="p-6 bg-slate-50 border-t border-slate-200 text-center">
-              <button className="text-sm font-bold text-blue-600 hover:underline">点击加载更多条目</button>
+           <div className="overflow-x-auto">
+             <table className="w-full text-left">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                   <tr>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">CAS Registry No.</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chemical Name</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Formula</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">M.W. (g/mol)</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">分类 (Category)</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
+                   </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                   {filteredData.map((item) => (
+                      <tr key={item.cas} className="hover:bg-blue-50/30 transition-colors group">
+                         <td className="px-6 py-4 font-mono text-xs font-medium text-blue-600">{item.cas}</td>
+                         <td className="px-6 py-4">
+                           <div className="text-sm font-bold text-slate-900">{item.nameEn}</div>
+                           <div className="text-xs text-slate-400 mt-0.5">{item.nameCn}</div>
+                         </td>
+                         <td className="px-6 py-4 font-mono text-xs text-slate-600">
+                            {item.formula}
+                         </td>
+                         <td className="px-6 py-4 font-mono text-xs text-slate-600">{item.mw}</td>
+                         <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                              item.category === '杂环化合物' ? 'bg-purple-50 text-purple-700 border-purple-100' :
+                              item.category === '医药中间体' ? 'bg-cyan-50 text-cyan-700 border-cyan-100' :
+                              item.category === '核苷类' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                              'bg-slate-100 text-slate-600 border-slate-200'
+                            }`}>
+                              {item.category}
+                            </span>
+                         </td>
+                         <td className="px-6 py-4 text-right">
+                            <button 
+                              onClick={() => setSelectedMol(item)}
+                              className="p-2 text-blue-500 hover:text-white hover:bg-blue-600 rounded-full transition-all shadow-sm border border-blue-100 hover:border-blue-600" 
+                              title="查看结构与性质"
+                            >
+                               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                               </svg>
+                            </button>
+                         </td>
+                      </tr>
+                   ))}
+                </tbody>
+             </table>
+             {filteredData.length === 0 && (
+                <div className="p-12 text-center text-slate-400 text-sm">
+                   No compounds found matching "{searchTerm}".
+                </div>
+             )}
+           </div>
+           
+           <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+              <div>Showing {filteredData.length} records</div>
+              <div className="flex gap-2">
+                 <button className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 disabled:opacity-50" disabled>Previous</button>
+                 <button className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50">Next</button>
+              </div>
            </div>
         </div>
       </div>

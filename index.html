@@ -9,29 +9,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- 引入 SmilesDrawer 用于绘制分子式 -->
+    <script src="https://unpkg.com/smiles-drawer@2.0.1/dist/smiles-drawer.min.js"></script>
     <style>
         body { 
           font-family: 'Inter', sans-serif; 
           background-color: #020617; 
           -webkit-font-smoothing: antialiased;
-          overflow: hidden; /* 配合全屏滚动吸附 */
+          overflow-x: hidden; /* 防止出现横向滚动条，允许纵向正常滚动 */
         }
         
-        /* 全屏滚动吸附容器 */
-        .snap-container {
-          height: 100vh;
-          overflow-y: auto;
-          scroll-snap-type: y mandatory;
-          scroll-behavior: smooth;
-        }
-
-        .snap-section {
-          scroll-snap-align: start;
-          scroll-snap-stop: always;
-          height: 100vh;
-          position: relative;
-        }
-
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 

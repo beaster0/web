@@ -33,10 +33,10 @@ const Home: React.FC = () => {
   return (
     <div className="bg-slate-950 overflow-hidden">
       
-      {/* 1. ACADEMIC HERO SECTION - Reverted Title Style */}
+      {/* 1. ACADEMIC HERO SECTION */}
       <section 
         ref={heroRef}
-        className="relative min-h-[100vh] flex items-center bg-slate-950 overflow-hidden"
+        className="relative min-h-[100vh] flex items-center bg-slate-950 overflow-hidden py-16" 
       >
         <motion.div 
           style={{ scale: heroScale, y: bgImageY }}
@@ -55,28 +55,44 @@ const Home: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-950"></div>
         </motion.div>
         
-        <div className="relative z-10 text-center px-4 max-w-7xl mx-auto w-full">
+        <div className="relative z-20 text-center px-4 max-w-7xl mx-auto w-full">
           <motion.div style={{ opacity: smoothOpacity, y: heroTextY }}>
             
+            {/* NEW: University Header - High Visibility */}
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1 }}
+              className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 mb-8 md:mb-10"
+            >
+               <div className="flex items-center gap-3">
+                 <span className="text-2xl md:text-3xl font-black text-white tracking-widest shadow-black drop-shadow-lg">北京交通大学</span>
+               </div>
+               <span className="hidden md:block w-px h-6 bg-slate-600"></span>
+               <div className="flex items-center gap-3">
+                 <span className="text-xl md:text-2xl font-bold text-slate-300 tracking-wider shadow-black drop-shadow-md">物理科学与工程学院</span>
+               </div>
+            </motion.div>
+
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.2 }}
-              className="inline-flex items-center gap-4 px-6 py-2 bg-blue-500/5 border border-blue-400/20 backdrop-blur-xl rounded-full mb-16"
+              className="inline-flex items-center gap-4 px-6 py-2 bg-blue-500/5 border border-blue-400/20 backdrop-blur-xl rounded-full mb-6 md:mb-8"
             >
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_15px_#3b82f6]"></div>
               <span className="text-blue-200 text-[11px] font-bold tracking-[0.4em] uppercase">北京市重点实验室 · BEIJING KEY LABORATORY</span>
             </motion.div>
             
-            {/* Reverted Boxed Title Style */}
-            <div className="flex flex-col items-center gap-4 mb-16">
+            {/* Boxed Title Style */}
+            <div className="flex flex-col items-center gap-3 mb-8 md:mb-10">
                <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="bg-white px-8 py-3 md:px-12 md:py-5 transform -skew-x-6"
+                className="bg-white px-6 py-2 md:px-12 md:py-4 transform -skew-x-6"
                >
-                 <h1 className="text-5xl md:text-[7.5rem] font-black text-slate-950 leading-none tracking-tighter skew-x-6">
+                 <h1 className="text-4xl sm:text-5xl md:text-[6rem] lg:text-[7.5rem] font-black text-slate-950 leading-none tracking-tighter skew-x-6">
                    高分子材料
                  </h1>
                </motion.div>
@@ -85,9 +101,9 @@ const Home: React.FC = () => {
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 md:px-12 md:py-5 transform -skew-x-6 shadow-[0_20px_50px_rgba(37,99,235,0.3)]"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2 md:px-12 md:py-4 transform -skew-x-6 shadow-[0_20px_50px_rgba(37,99,235,0.3)]"
                >
-                 <h1 className="text-5xl md:text-[7.5rem] font-black text-white leading-none tracking-tighter skew-x-6">
+                 <h1 className="text-4xl sm:text-5xl md:text-[6rem] lg:text-[7.5rem] font-black text-white leading-none tracking-tighter skew-x-6">
                    基因组工程
                  </h1>
                </motion.div>
@@ -97,7 +113,7 @@ const Home: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1.5, delay: 0.9 }}
-              className="text-lg md:text-xl text-slate-400 mb-20 max-w-3xl mx-auto font-light leading-relaxed tracking-wide"
+              className="text-base md:text-xl text-slate-400 mb-10 max-w-3xl mx-auto font-light leading-relaxed tracking-wide px-4"
             >
               融合多尺度计算模拟、高通量合成制备与精准实验表征，<br className="hidden md:block" />
               构建数据驱动的高分子研发新体系，加速跨尺度材料设计的智能化进程。
@@ -107,26 +123,48 @@ const Home: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 1.1 }}
-              className="flex flex-col sm:flex-row justify-center items-center gap-8"
+              className="flex flex-col md:flex-row justify-center items-center gap-6"
             >
-              <Link to="/research" className="group relative px-12 py-5 bg-white text-slate-950 font-black rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-2xl">
-                <span className="relative z-10">进入研究范式</span>
-                <div className="absolute inset-0 bg-blue-500 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                <span className="absolute inset-0 z-20 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 uppercase text-xs tracking-widest">Discover MGE</span>
+              {/* Button 1: Research (White to Blue) */}
+              <Link to="/research" className="group relative w-72 h-16 flex items-center justify-center bg-white rounded-xl overflow-hidden shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer z-30">
+                <div className="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                
+                {/* Chinese Text (Fades Out) */}
+                <span className="relative z-10 text-slate-950 font-black text-lg group-hover:opacity-0 transition-opacity duration-200">
+                  进入研究范式
+                </span>
+                
+                {/* English Text (Fades In & Moves Up) */}
+                <span className="absolute z-20 inset-0 flex items-center justify-center text-white font-black text-xs tracking-[0.2em] opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75">
+                  DISCOVER MGE
+                </span>
               </Link>
-              <Link to="/database" className="px-12 py-5 bg-slate-900/50 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all backdrop-blur-md hover:border-white/30">
-                访问基因组数据库
+
+              {/* Button 2: Database (Transparent to White) */}
+              <Link to="/database" className="group relative w-72 h-16 flex items-center justify-center bg-slate-900/40 border border-white/20 backdrop-blur-md rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95 hover:border-white/50 cursor-pointer z-30">
+                <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                
+                {/* Chinese Text (Fades Out) */}
+                <span className="relative z-10 text-white font-bold text-lg group-hover:opacity-0 transition-opacity duration-200">
+                  访问基因组数据库
+                </span>
+                
+                {/* English Text (Fades In & Moves Up) */}
+                <span className="absolute z-20 inset-0 flex items-center justify-center text-slate-950 font-black text-xs tracking-[0.2em] opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75">
+                  ACCESS DATABASE
+                </span>
               </Link>
             </motion.div>
           </motion.div>
         </div>
 
+        {/* Scroll Indicator - Positioned securely at bottom with lower z-index */}
         <motion.div 
           style={{ opacity: smoothOpacity }}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 pointer-events-none z-10"
         >
           <span className="text-[9px] text-slate-500 font-black tracking-[0.5em] uppercase">Scroll</span>
-          <div className="w-px h-16 bg-gradient-to-b from-blue-500/50 via-blue-500/10 to-transparent"></div>
+          <div className="w-px h-12 md:h-16 bg-gradient-to-b from-blue-500/50 via-blue-500/10 to-transparent"></div>
         </motion.div>
       </section>
 
