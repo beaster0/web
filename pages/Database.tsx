@@ -16,7 +16,7 @@ interface ChemicalEntry {
   nameCn: string;
   formula: string;
   mw: string; // Molecular Weight
-  category: '杂环化合物' | '医药中间体' | '核苷类' | '化学试剂';
+  properties: string; // Changed from category to properties string
   smiles: string; // SMILES string for structure drawing
 }
 
@@ -123,7 +123,7 @@ const MoleculeViewer: React.FC<{ smiles: string; cas: string }> = ({ smiles, cas
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Export PNG
+            导出图片
         </button>
     </div>
   );
@@ -133,7 +133,7 @@ const Database: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMol, setSelectedMol] = useState<ChemicalEntry | null>(null);
   
-  // 数据来源
+  // 数据来源 - 更新 properties 字段为中文
   const mockData: ChemicalEntry[] = [
     { 
       cas: '82212-14-4', 
@@ -141,7 +141,7 @@ const Database: React.FC = () => {
       nameCn: '5-(2-氨基-4-氯-5-苯磺酰胺)-1H-四唑', 
       formula: 'C7H7ClN6O2S', 
       mw: '274.69', 
-      category: '杂环化合物',
+      properties: '密度: 1.8±0.1 g/cm3 | 沸点: 633.9±65.0 °C (760 mmHg) | pKa: 3.42±0.10',
       smiles: 'NS(=O)(=O)c1cc(c(Cl)cc1N)c2[nH]nnn2'
     },
     { 
@@ -150,7 +150,7 @@ const Database: React.FC = () => {
       nameCn: 'n-辛酰苯并三唑', 
       formula: 'C14H19N3O', 
       mw: '245.32', 
-      category: '化学试剂',
+      properties: '密度: 1.1±0.1 g/cm3 | 沸点: 379.3±25.0 °C | 熔点: 38-40 °C',
       smiles: 'CCCCCCCC(=O)n1nnc2ccccc12'
     },
     { 
@@ -159,7 +159,7 @@ const Database: React.FC = () => {
       nameCn: '3-氯-4-(异丙基磺酰基)噻吩-2-羧酸', 
       formula: 'C8H9ClO4S2', 
       mw: '268.74', 
-      category: '医药中间体',
+      properties: '密度: 1.5±0.1 g/cm3 | 沸点: 450.2±45.0 °C | pKa: 2.85±0.10',
       smiles: 'CC(C)S(=O)(=O)c1c(Cl)c(s1)C(=O)O'
     },
     { 
@@ -168,7 +168,7 @@ const Database: React.FC = () => {
       nameCn: '2-(3-氯丙氧基)-1-甲氧基-4-硝基苯', 
       formula: 'C10H12ClNO4', 
       mw: '245.66', 
-      category: '医药中间体',
+      properties: '密度: 1.3±0.1 g/cm3 | 沸点: 388.3±27.0 °C | 熔点: 62-64 °C',
       smiles: 'COc1cc([N+](=O)[O-])ccc1OCCCCl'
     },
     { 
@@ -177,7 +177,7 @@ const Database: React.FC = () => {
       nameCn: '嘧啶-4,6-二羧酸', 
       formula: 'C6H4N2O4', 
       mw: '168.11', 
-      category: '杂环化合物',
+      properties: '密度: 1.7±0.1 g/cm3 | 沸点: 497.4±30.0 °C | pKa: 1.58±0.10',
       smiles: 'OC(=O)c1cc(ncn1)C(=O)O'
     },
     { 
@@ -186,7 +186,7 @@ const Database: React.FC = () => {
       nameCn: '6-氨基-5-硝基-2(1H)-嘧啶', 
       formula: 'C4H4N4O3', 
       mw: '156.10', 
-      category: '杂环化合物',
+      properties: '密度: 2.02 g/cm3 | 沸点: 553.4°C (760 mmHg) | 熔点: >300 °C',
       smiles: 'Nc1nc(=O)[nH]cc1[N+](=O)[O-]'
     },
     { 
@@ -195,7 +195,7 @@ const Database: React.FC = () => {
       nameCn: '5-(对甲苯磺酰基)-2,3-O-异丙亚基-2-C-甲基-D-核糖酸内酯', 
       formula: 'C15H18O7S', 
       mw: '342.36', 
-      category: '核苷类',
+      properties: '密度: 1.293 g/cm3 | 沸点: N/A | 熔点: 98-100 °C',
       smiles: 'Cc1ccc(S(=O)(=O)OC[C@@]2(C)OC(=O)[C@@H]3OC(C)(C)O[C@H]23)cc1'
     },
     { 
@@ -204,7 +204,7 @@ const Database: React.FC = () => {
       nameCn: '5-溴-1,2,4-三唑-3-甲酸甲酯', 
       formula: 'C4H4BrN3O2', 
       mw: '205.99', 
-      category: '杂环化合物',
+      properties: '密度: 1.902±0.06 g/cm3 | 沸点: 352.1±32.0 °C | pKa: 6.81±0.20',
       smiles: 'COC(=O)c1nc(Br)[nH]n1'
     },
     { 
@@ -213,7 +213,7 @@ const Database: React.FC = () => {
       nameCn: '4-甲基-1(2H)-异喹啉酮', 
       formula: 'C10H9NO', 
       mw: '159.19', 
-      category: '杂环化合物',
+      properties: '密度: 1.22±0.1 g/cm3 | 沸点: 360.5±0.0 °C | 熔点: 218-220 °C',
       smiles: 'Cc1c[nH]c(=O)c2ccccc12'
     },
     { 
@@ -222,7 +222,7 @@ const Database: React.FC = () => {
       nameCn: '6-甲基喹唑啉-2,4-二酮', 
       formula: 'C9H8N2O2', 
       mw: '176.17', 
-      category: '杂环化合物',
+      properties: '密度: 1.3±0.1 g/cm3 | 沸点: N/A | 熔点: >300 °C',
       smiles: 'Cc1ccc2[nH]c(=O)[nH]c(=O)c2c1'
     },
     { 
@@ -231,7 +231,7 @@ const Database: React.FC = () => {
       nameCn: '5-氨基噻唑并[4,5-d]嘧啶-2(3H)-酮', 
       formula: 'C5H4N4OS', 
       mw: '168.18', 
-      category: '杂环化合物',
+      properties: '密度: 1.7±0.1 g/cm3 | 沸点: N/A | pKa: 7.5±0.2',
       smiles: 'Nc1nc2sc(=O)[nH]c2cn1'
     },
     { 
@@ -240,7 +240,7 @@ const Database: React.FC = () => {
       nameCn: '2-乙基硫代-5-甲基-3H-嘧啶-4-酮', 
       formula: 'C7H10N2OS', 
       mw: '170.23', 
-      category: '医药中间体',
+      properties: '密度: 1.25 g/cm3 | 沸点: 274.4°C (760 mmHg) | 熔点: 135-138 °C',
       smiles: 'CCSc1nc(O)cc(C)n1'
     },
     { 
@@ -249,7 +249,7 @@ const Database: React.FC = () => {
       nameCn: '2-乙氧基嘧啶-4-醇', 
       formula: 'C6H8N2O2', 
       mw: '140.14', 
-      category: '杂环化合物',
+      properties: '密度: 1.2±0.1 g/cm3 | 沸点: 280.5±0.0 °C | 熔点: 165-167 °C',
       smiles: 'CCOc1ccnc(O)n1'
     },
     { 
@@ -258,7 +258,7 @@ const Database: React.FC = () => {
       nameCn: '5-O-甲基磺酰基-2,3-O-异丙亚基-2-C-甲基-D-核糖酸内酯', 
       formula: 'C10H16O7S', 
       mw: '280.30', 
-      category: '核苷类',
+      properties: '密度: 1.33 g/cm3 | 沸点: N/A | 熔点: 82-84 °C',
       smiles: 'CS(=O)(=O)OC[C@@]1(C)OC(=O)[C@@H]2OC(C)(C)O[C@H]12'
     },
     { 
@@ -267,7 +267,7 @@ const Database: React.FC = () => {
       nameCn: '4-氨基-2-羟基喹唑啉', 
       formula: 'C8H7N3O', 
       mw: '161.16', 
-      category: '杂环化合物',
+      properties: '密度: 1.5±0.1 g/cm3 | 沸点: 489.6±37.0 °C | 熔点: >300 °C',
       smiles: 'Nc1nc(O)c2ccccc2n1'
     },
     { 
@@ -276,7 +276,7 @@ const Database: React.FC = () => {
       nameCn: '1-(4-硝基苄基)-4-羟基-1H-咪唑-5-羧酰胺', 
       formula: 'C11H10N4O4', 
       mw: '262.22', 
-      category: '医药中间体',
+      properties: '密度: 1.6±0.1 g/cm3 | 沸点: N/A | pKa: 5.4±0.1',
       smiles: 'NC(=O)c1c(O)n(Cc2ccc([N+](=O)[O-])cc2)cn1'
     },
     { 
@@ -285,7 +285,7 @@ const Database: React.FC = () => {
       nameCn: '6-甲基-1,6-萘啶-5(6h)-酮', 
       formula: 'C9H8N2O', 
       mw: '160.17', 
-      category: '杂环化合物',
+      properties: '密度: 1.229 g/cm3 | 沸点: 340.609°C (760 mmHg) | 熔点: 180-182 °C',
       smiles: 'Cn1ccc2cccnc2c1=O'
     },
     { 
@@ -294,7 +294,7 @@ const Database: React.FC = () => {
       nameCn: '9H-嘌呤-6-胺, n-环戊基-', 
       formula: 'C10H13N5', 
       mw: '203.24', 
-      category: '杂环化合物',
+      properties: '密度: 1.4±0.1 g/cm3 | 沸点: N/A | 熔点: 160-162 °C',
       smiles: 'NC1=NC=NC2=C1N=CN2C3CCCC3'
     }
   ];
@@ -302,7 +302,8 @@ const Database: React.FC = () => {
   const filteredData = mockData.filter(item => 
     item.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) || 
     item.nameCn.includes(searchTerm) ||
-    item.cas.includes(searchTerm)
+    item.cas.includes(searchTerm) ||
+    item.properties.includes(searchTerm) // Also search in properties
   );
 
   return (
@@ -343,7 +344,7 @@ const Database: React.FC = () => {
                 <div className="flex justify-between items-start mb-6">
                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-500 shadow-sm">
                       <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                      2D STRUCTURE
+                      二维结构 (2D)
                    </div>
                 </div>
                 
@@ -372,10 +373,8 @@ const Database: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="mb-10">
-                    <div className="inline-block px-2.5 py-1 bg-blue-50 text-blue-700 text-[11px] font-bold uppercase tracking-wider rounded mb-4">
-                        {selectedMol.category}
-                    </div>
+                <div className="mb-8">
+                    {/* Removed category badge */}
                     <h2 className="text-4xl font-extrabold text-slate-900 leading-tight mb-3 font-mono tracking-tight">{selectedMol.cas}</h2>
                     <h3 className="text-base font-bold text-slate-700 leading-snug mb-2">{selectedMol.nameEn}</h3>
                     <p className="text-sm text-slate-400">{selectedMol.nameCn}</p>
@@ -384,33 +383,39 @@ const Database: React.FC = () => {
                 <div className="space-y-6">
                     <div className="p-5 bg-slate-50 rounded-xl border border-slate-100 flex flex-col gap-4">
                         <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-                            <span className="text-xs font-bold text-slate-400 uppercase">Formula</span>
+                            <span className="text-xs font-bold text-slate-400 uppercase">分子式 (Formula)</span>
                             <span className="font-mono text-sm font-bold text-slate-800">{selectedMol.formula}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-400 uppercase">Mol. Weight</span>
+                            <span className="text-xs font-bold text-slate-400 uppercase">分子量 (Mol. Weight)</span>
                             <span className="font-mono text-sm font-bold text-slate-800">{selectedMol.mw} g/mol</span>
                         </div>
                     </div>
                     
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase mb-3">理化性质 (Physical Properties)</div>
+                        <div className="text-xs text-slate-700 font-mono leading-relaxed space-y-2">
+                            {selectedMol.properties.split('|').map((prop, idx) => (
+                                <div key={idx} className="flex gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
+                                    <span>{prop.trim()}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
                     <div className="space-y-3">
-                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-3">Inventory Status</h4>
+                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-3">库存状态 (Status)</h4>
                         <div className="flex items-center gap-3 text-sm text-slate-600">
                              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                             <span>In Stock (Lab 302, Cabinet B)</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm text-slate-600">
-                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                             </svg>
-                             <span>Purity: ≥98% (HPLC)</span>
+                             <span>现有库存 (302实验室, B柜)</span>
                         </div>
                     </div>
                 </div>
 
                 <div className="mt-auto pt-10">
                     <button className="w-full bg-slate-900 text-white py-4 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 group">
-                        <span>Request Sample</span>
+                        <span>申请样品</span>
                         <svg className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
@@ -426,7 +431,7 @@ const Database: React.FC = () => {
       <div className="bg-slate-900 text-white py-20 px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
-            <h1 className="text-4xl font-extrabold mb-4">Chemical Registry & CAS Index</h1>
+            <h1 className="text-4xl font-extrabold mb-4">化学品数据库与 CAS 索引</h1>
             <p className="text-slate-400 max-w-xl text-sm leading-relaxed">
               Materials Genome Engineering Database (MGED) 收录了本实验室常用的有机合成中间体、杂环化合物及精细化学品数据。
             </p>
@@ -435,7 +440,7 @@ const Database: React.FC = () => {
              <div className="relative group">
                 <input 
                   type="text" 
-                  placeholder="Search by CAS or Name..." 
+                  placeholder="搜索 CAS、名称、性质..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="bg-slate-800 border border-slate-700 rounded-lg py-3 px-10 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-72 transition-all group-hover:bg-slate-800/80"
@@ -445,7 +450,7 @@ const Database: React.FC = () => {
                 </svg>
              </div>
              <button className="bg-blue-600 px-6 py-3 rounded-lg font-bold text-sm hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/50">
-               Export Data
+               导出数据
              </button>
           </div>
         </div>
@@ -457,12 +462,12 @@ const Database: React.FC = () => {
              <table className="w-full text-left">
                 <thead className="bg-slate-50 border-b border-slate-200">
                    <tr>
-                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">CAS Registry No.</th>
-                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chemical Name</th>
-                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Formula</th>
-                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">M.W. (g/mol)</th>
-                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">分类 (Category)</th>
-                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">CAS 登记号</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">化学名称</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">分子式</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">分子量 (g/mol)</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest w-1/4">理化性质</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">操作</th>
                    </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -478,14 +483,9 @@ const Database: React.FC = () => {
                          </td>
                          <td className="px-6 py-4 font-mono text-xs text-slate-600">{item.mw}</td>
                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                              item.category === '杂环化合物' ? 'bg-purple-50 text-purple-700 border-purple-100' :
-                              item.category === '医药中间体' ? 'bg-cyan-50 text-cyan-700 border-cyan-100' :
-                              item.category === '核苷类' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                              'bg-slate-100 text-slate-600 border-slate-200'
-                            }`}>
-                              {item.category}
-                            </span>
+                            <div className="text-[10px] text-slate-500 font-mono leading-relaxed line-clamp-2" title={item.properties}>
+                               {item.properties}
+                            </div>
                          </td>
                          <td className="px-6 py-4 text-right">
                             <button 
@@ -505,16 +505,16 @@ const Database: React.FC = () => {
              </table>
              {filteredData.length === 0 && (
                 <div className="p-12 text-center text-slate-400 text-sm">
-                   No compounds found matching "{searchTerm}".
+                   未找到匹配项: "{searchTerm}".
                 </div>
              )}
            </div>
            
            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-              <div>Showing {filteredData.length} records</div>
+              <div>显示 {filteredData.length} 条记录</div>
               <div className="flex gap-2">
-                 <button className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 disabled:opacity-50" disabled>Previous</button>
-                 <button className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50">Next</button>
+                 <button className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 disabled:opacity-50" disabled>上一页</button>
+                 <button className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50">下一页</button>
               </div>
            </div>
         </div>
